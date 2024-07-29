@@ -126,8 +126,5 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: 'jwt-pizza-service'
         run: |
-          docker --version
-          cd dist
-          ls -la
           docker build --platform=linux/arm64 -t $ECR_REGISTRY/$ECR_REPOSITORY --push .
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:latest"
