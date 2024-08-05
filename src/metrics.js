@@ -30,9 +30,7 @@ class Metrics {
   sendMetricsPeriodically(period) {
     const timer = setInterval(() => {
       try {
-        const metrics = this.getMetrics();
-        this.sendMetricToGrafana();
-        logger.log('info', 'metrics', { msg: metrics });
+        this.sendMetricToGrafana(this.getMetrics());
       } catch (error) {
         logger.log('error', 'metrics', { msg: 'Error sending metrics', err: { msg: error.message, stack: error.stack } });
       }
@@ -145,7 +143,6 @@ class Metrics {
   }
 
   sendMetricToGrafana(metrics) {
-    console.log(metrics);
     fetch(`${config.metrics.url}`, {
       method: 'post',
       body: metrics,
