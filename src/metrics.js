@@ -33,6 +33,7 @@ class Metrics {
     const timer = setInterval(() => {
       try {
         this.sendMetricToGrafana(this.getMetrics());
+        logger.log('info', 'metrics', { msg: 'sent metrics' });
       } catch (error) {
         logger.log('error', 'metrics', { msg: 'Error sending metrics', err: { msg: error.message, stack: error.stack } });
       }
