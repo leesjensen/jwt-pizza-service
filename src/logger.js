@@ -1,7 +1,5 @@
 const config = require('./config.js');
 
-console.log('logger started');
-
 class Logger {
   httpLogger = (req, res, next) => {
     let send = res.send;
@@ -18,7 +16,6 @@ class Logger {
       const level = this.statusToLogLevel(res.statusCode);
       this.log(level, 'http', logData);
       res.send = send;
-      console.log('logging', logData);
       return res.send(resBody);
     };
     next();
