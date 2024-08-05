@@ -31,6 +31,7 @@ class Metrics {
 
   sendMetricsPeriodically(period) {
     const timer = setInterval(() => {
+      console.log('sendMetricsPeriodically');
       try {
         this.sendMetricToGrafana(this.getMetrics());
         logger.log('info', 'metrics', { msg: 'sent metrics' });
