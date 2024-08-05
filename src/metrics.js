@@ -2,8 +2,6 @@ const config = require('./config.js');
 const os = require('os');
 const logger = require('./logger.js');
 
-console.log('metrics started');
-
 class MetricBuilder {
   constructor() {
     this._strings = [];
@@ -31,7 +29,6 @@ class Metrics {
 
   sendMetricsPeriodically(period) {
     const timer = setInterval(() => {
-      console.log('sendMetricsPeriodically');
       try {
         this.sendMetricToGrafana(this.getMetrics());
         logger.log('info', 'metrics', { msg: 'sent metrics' });
@@ -147,6 +144,7 @@ class Metrics {
   }
 
   sendMetricToGrafana(metrics) {
+    console.log(JSON.stringify(config.metrics));
     fetch(`${config.metrics.url}`, {
       method: 'post',
       body: metrics,
