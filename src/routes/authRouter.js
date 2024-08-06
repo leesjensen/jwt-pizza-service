@@ -101,6 +101,22 @@ authRouter.delete(
   })
 );
 
+// undocumented chaos injection
+// curl -s -X PUT $host/api/auth/chaos/false -H 'Content-Type: application/json' -d '{}'  -H "Authorization: Bearer $token"
+let enableChaos = false;
+authRouter.put(
+  '/chaos/:state',
+  authRouter.authenticateToken,
+  asyncHandler(async (req, res) => {
+    if (!req.user.isRole(Role.Admin)) {
+      throw new StatusCodeError('unknown endpoint', 404);
+    }
+
+    enableChaos = req.params.state === 'true';
+    res.json({ chaos: enableChaos });
+  })
+);
+
 // updateUser
 authRouter.put(
   '/:userId',
@@ -115,21 +131,6 @@ authRouter.put(
 
     const updatedUser = await DB.updateUser(userId, email, password);
     res.json(updatedUser);
-  })
-);
-
-// chaos injection
-let enableChaos = false;
-authRouter.put(
-  '/:state',
-  authRouter.authenticateToken,
-  asyncHandler(async (req, res) => {
-    if (!req.user.isRole(Role.Admin)) {
-      throw new StatusCodeError('Invalid endpoint', 404);
-    }
-
-    enableChaos = req.params.state === 'true';
-    res.json({ chaos: enableChaos });
   })
 );
 
