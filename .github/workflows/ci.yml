@@ -174,4 +174,4 @@ jobs:
 
       - name: Annotate deployment in Grafana
         run: |
-          curl -s -X POST https://explore1.grafana.net/api/annotations -H "Authorization: Bearer ${{ secrets.GRAFANA_ACCESS_TOKEN }}" -H "Content-Type:application/json" -d '{"dashboardUID":"adtx9s95we41sf", "panelId":6, "text":"Backend Production '"$version"' deployed" }'
+          curl -s -X POST https://explore1.grafana.net/api/annotations -H "Authorization: Bearer ${{ secrets.GRAFANA_ACCESS_TOKEN }}" -H "Content-Type:application/json" -d '{"dashboardUID":"adtx9s95we41sf", "panelId":6, "text":"Backend Production '"$version"' deployed", "tags":["backend","production"]}' }'
