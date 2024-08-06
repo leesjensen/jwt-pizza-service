@@ -7,9 +7,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  validate:
-    name: Test and analyze
+  build:
+    name: Build
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set_version.outputs.version }}
     # services:
     #   mysql:
     #     image: mysql:8.0.29
@@ -74,9 +76,15 @@ jobs:
       # - name: Tests
       #   run: npm test
 
+      - name: set version
+        id: set_version
+        run: |
+          version=$(date +'%Y%m%d.%H%M%S')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          printf '{"version": "%s" }' "$version" > src/version.json
+
       - name: Update coverage and version
         run: |
-          printf '{"version": "%s" }' $(date +'%Y%m%d.%H%M%S') > src/version.json
           # coverage_pct=$(grep -o '"pct":[0-9.]*' coverage/coverage-summary.json | head -n 1 | cut -d ':' -f 2)
           # color=$(echo "$coverage_pct < 80" | bc -l | awk '{if ($1) print "yellow"; else print "green"}')
           # sed -i "s/^Coverage: .*/Coverage: $coverage_pct %/" README.md
@@ -107,7 +115,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-    needs: validate
+    needs: build
+    env:
+      version: ${{needs.build.outputs.version}}
 
     steps:
       - name: Download distribution artifact
@@ -161,3 +171,7 @@ jobs:
           service: jwt-pizza-service-lee
           cluster: jwt-pizza-service-lee
           wait-for-service-stability: false
+
+      - name: Annotate deployment in Grafana
+        run: |
+          curl -s -X POST https://explore1.grafana.net/api/annotations -H "Authorization: Bearer ${{ secrets.GRAFANA_ACCESS_TOKEN }}" -H "Content-Type:application/json" -d '{"dashboardUID":"adtx9s95we41sf", "panelId":6, "text":"Backend Production '"$version"' deployed" }'
