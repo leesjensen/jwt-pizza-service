@@ -1,7 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const config = require('../config.js');
-const { asyncHandler } = require('../endpointHelper.js');
+const { StatusCodeError, asyncHandler } = require('../endpointHelper.js');
 const { DB, Role } = require('../database/database.js');
 
 const authRouter = express.Router();
@@ -81,6 +81,9 @@ authRouter.post(
 authRouter.put(
   '/',
   asyncHandler(async (req, res) => {
+    if (enableChaos && Math.random() < 0.5) {
+      throw new StatusCodeError('Chaos monkey', 500);
+    }
     const { email, password } = req.body;
     const user = await DB.getUser(email, password);
     const auth = await setAuth(user);
@@ -112,6 +115,21 @@ authRouter.put(
 
     const updatedUser = await DB.updateUser(userId, email, password);
     res.json(updatedUser);
+  })
+);
+
+// chaos injection
+let enableChaos = false;
+authRouter.put(
+  '/:state',
+  authRouter.authenticateToken,
+  asyncHandler(async (req, res) => {
+    if (!req.user.isRole(Role.Admin)) {
+      throw new StatusCodeError('Invalid endpoint', 404);
+    }
+
+    enableChaos = req.params.state === 'true';
+    res.json({ chaos: enableChaos });
   })
 );
 
