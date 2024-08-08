@@ -81,14 +81,11 @@ class DB {
       const params = [];
       if (password) {
         const hashedPassword = await bcrypt.hash(password, 10);
-        params.push(`password='${hashedPassword}'`);
+        await this.query(connection, `UPDATE user SET password=? WHERE id=?`, [hashedPassword, userId]);
       }
       if (email) {
+        await this.query(connection, `UPDATE user SET email=? WHERE id=?`, [email, userId]);
         params.push(`email='${email}'`);
-      }
-      if (params.length > 0) {
-        const query = `UPDATE user SET ${params.join(', ')} WHERE id=${userId}`;
-        await this.query(connection, query);
       }
       return this.getUser(email, password);
     } finally {
@@ -332,7 +329,7 @@ class DB {
         }
 
         if (!dbExists) {
-          const defaultAdmin = { name: '常用名字', email: 'a@jwt.com', password: 'admin', roles: [{ role: Role.Admin }] };
+          const defaultAdmin = { name: '常用名字', email: 'a@jwt.com', password: 'a', roles: [{ role: Role.Admin }] };
           this.addUser(defaultAdmin);
         }
       } finally {
