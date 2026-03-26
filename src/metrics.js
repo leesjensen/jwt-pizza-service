@@ -17,7 +17,7 @@ function requestTracker(req, res, next) {
 }
 
 // This will periodically send metrics to Grafana
-setInterval(() => {
+const metricInterval = setInterval(() => {
   const metrics = [];
   Object.keys(requests).forEach((endpoint) => {
     metrics.push(createMetric('requests', requests[endpoint], '1', 'sum', 'asInt', { endpoint }));
@@ -27,6 +27,8 @@ setInterval(() => {
 
   sendMetricToGrafana(metrics);
 }, 10000);
+
+metricInterval.unref(); // Allow the process to exit if this is the only thing left
 
 function createMetric(metricName, metricValue, metricUnit, metricType, valueType, attributes) {
   attributes = { ...attributes, source: config.source };
