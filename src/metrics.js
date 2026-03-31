@@ -3,6 +3,7 @@ const { metrics: config } = require('./config');
 // Metrics stored in memory
 const requests = {};
 let greetingChangedCount = 0;
+let errorCount = 0;
 
 // Function to track when the greeting is changed
 function greetingChanged() {
@@ -13,6 +14,13 @@ function greetingChanged() {
 function requestTracker(req, res, next) {
   const endpoint = `[${req.method}] ${req.path}`;
   requests[endpoint] = (requests[endpoint] || 0) + 1;
+
+  res.on('finish', () => {
+    if (res.statusCode >= 400) {
+      errorCount++;
+    }
+  });
+
   next();
 }
 
@@ -24,6 +32,7 @@ const metricInterval = setInterval(() => {
   });
 
   metrics.push(createMetric('greetingChange', greetingChangedCount, '1', 'sum', 'asInt', {}));
+  metrics.push(createMetric('errors', errorCount, '1', 'sum', 'asInt', {}));
 
   sendMetricToGrafana(metrics);
 }, 10000);
