@@ -99,6 +99,38 @@ class DB {
     }
   }
 
+  async deleteUser(userId) {
+    const connection = await this.getConnection();
+    try {
+      await connection.beginTransaction();
+      try {
+        await this.query(connection, `DELETE FROM auth WHERE userId=?`, [userId]);
+        await this.query(connection, `DELETE FROM userRole WHERE userId=?`, [userId]);
+        const deleteResult = await this.query(connection, `DELETE FROM user WHERE id=?`, [userId]);
+
+        if (deleteResult.affectedRows === 0) {
+          await connection.rollback();
+          throw new StatusCodeError('unknown user', 404);
+        }
+
+        await connection.commit();
+      } catch (error) {
+        try {
+          await connection.rollback();
+        } catch {
+          // Ignore rollback errors and return the original failure below.
+        }
+
+        if (error instanceof StatusCodeError) {
+          throw error;
+        }
+        throw new StatusCodeError('unable to delete user', 500);
+      }
+    } finally {
+      connection.end();
+    }
+  }
+
   async loginUser(userId, token) {
     token = this.getTokenSignature(token);
     const connection = await this.getConnection();
