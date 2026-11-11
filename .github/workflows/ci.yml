@@ -137,6 +137,8 @@ jobs:
       - build
       - deploy
     runs-on: ubuntu-latest
+    env:
+      version: ${{needs.build.outputs.version}}
     permissions:
       contents: write
     steps:
@@ -153,3 +155,9 @@ jobs:
             ${{ github.event.head_commit.message }}
 
             **commit**: ${{ github.sha }}
+      - name: Annotate deployment in Grafana
+        run: |
+          curl -s -X POST https://be329f24.grafana.net/api/annotations \
+          -H "Authorization: Bearer ${{ secrets.GRAFANA_ACCESS_TOKEN }}" \
+          -H "Content-Type: application/json" \
+          -d '{"dashboardUID":"bewxg2p", "panelId":1, "tags":["backend","production","jwt-pizza"], "text":"Version '"$version"' deployed" }'
